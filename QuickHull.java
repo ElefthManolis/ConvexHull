@@ -1,13 +1,13 @@
-package com.company;
-
 import java.io.*;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
+import java.lang.ArrayIndexOutOfBoundsException;
 
 
 public class Mines {
     public static class Point {                     // Δημιουργώ μια βοηθητική κλάση Point για να απεικονήσω καλύτερα τα σημεία με μεταβλητες την τετμημενη και την
-                                                    // και την τεταγμένη (x,y)
+        // και την τεταγμένη (x,y)
         public int x;
         public int y;
 
@@ -20,15 +20,14 @@ public class Mines {
     public static ArrayList<Point> quickHull(ArrayList<Point> points) {
         ArrayList<Point> convexHull1 = new ArrayList<Point>();
         ArrayList<Point> convexHull2 = new ArrayList<Point>();
+        ArrayList<Point> convexHull = new ArrayList<Point>();
         if (points.size() == 3)
             return (ArrayList) points.clone();
 
         Point A = points.get(0);        // Ξέρουμε ότι τα δύο πρώτα σημεία είναι οι συντεταγμένες εκκίνησης και οι συντεταγμενες του θησαυρού
         Point B = points.get(1);
-        convexHull1.add(A);              // Τα προσθέτω στην λίστα που δημιούργησα
-        convexHull1.add(B);
-        convexHull2.add(A);
-        convexHull2.add(B);
+        convexHull.add(A);                  // Τα προσθέτω στην λίστα που δημιούργησα
+        convexHull.add(B);
         points.remove(0);           // Τα αφαιρώ από την αρχική λίστα
         points.remove(1);
 
@@ -42,8 +41,22 @@ public class Mines {
             else if (pointLocation(A, B, p) == 1)   // Βρίσκω τα σημεία που είναι δεξιά των δύο προηγούμενων σημείων
                 rightSet.add(p);
         }
-        hullSet(A, B, rightSet, convexHull1);
-        hullSet(A, B, leftSet, convexHull2);
+        hullSet(A,B,rightSet,convexHull);                       //  Πρώτα βρίσκω όλα το πολυγωνικό περιτύλιγμα
+        hullSet(B,A,leftSet,convexHull);
+        int temp=0;
+        for(int i=0;i<convexHull.size();i++){
+            if(convexHull.get(i).x==A.x && convexHull.get(i).y==A.y){       //Βρίσκω που βρίσκεται το αρχικό σημείο στην λίστα
+                temp=i;
+            }
+        }
+        for(int i=temp;i<convexHull.size();i++){
+            convexHull1.add(convexHull.get(i));                     // Και τελικά διαχωρίζω τα σημεία σε αυτά που βρίσκονται κάτω από το ευθύγραμμο τμήμα
+                                                                    //και σε αυτά που βρίσκονται πάνω από το ευθύγραμμο τμήμα
+        }
+        for(int i=temp;i>=0;i--){
+            convexHull2.add(convexHull.get(i));
+        }
+        convexHull2.add(B);
         if(EuclideanLenghtofPath(convexHull1) > EuclideanLenghtofPath(convexHull2))
             return convexHull2;
         return convexHull1;
@@ -145,28 +158,28 @@ public class Mines {
             finalPath = quickHull(listOfPoints);
             minDistance = EuclideanLenghtofPath(finalPath);
 
-
-            System.out.printf("The shortest distance is %.5f%n", minDistance);  // Στρογγυλοποιώ στο 5ο δεκαδικο ψηφίο
-            System.out.println("The shortest path is: ");
+            DecimalFormat minDist = new DecimalFormat("#.#####");
+            System.out.println("The shortest distance is " + minDist.format(minDistance));  // Στρογγυλοποιώ στο 5ο δεκαδικο ψηφίο
+            System.out.print("The shortest path is:");
             for (int j = 0; j < finalPath.size(); j++) {
                 if (j != finalPath.size() - 1)
-                    System.out.println("(" + finalPath.get(j).x + ", " + finalPath.get(j).y + ")" + "-->");
+                    System.out.print("(" + finalPath.get(j).x + "," + finalPath.get(j).y + ")" + "-->");
                 else
-                    System.out.println("(" + finalPath.get(j).x + ", " + finalPath.get(j).y + ")");
+                    System.out.print("(" + finalPath.get(j).x + "," + finalPath.get(j).y + ")");
             }
         }
-            catch(IOException ioException)
-            {
-             System.err.println("Error opening file. Terminating.");
-                System.exit(1);
-            }
-            catch(NoSuchElementException elementException)
-            {
-                System.out.println("File improperly formed. Terminating");
-            }
-            catch(IllegalStateException stateException)
-            {
-                System.err.println("Error reading from file. Terminating.");
-            }
+        catch(IOException ioException)
+        {
+            System.err.println("Error opening file. Terminating.");
+            System.exit(1);
+        }
+        catch(NoSuchElementException elementException)
+        {
+            System.out.println("File improperly formed. Terminating");
+        }
+        catch(IllegalStateException stateException)
+        {
+            System.err.println("Error reading from file. Terminating.");
         }
     }
+}
